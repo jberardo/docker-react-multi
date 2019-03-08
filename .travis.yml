@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t jberardo/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run jberardo/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t jberardo/docker-react-multi-client ./client
+  - docker build -t jberardo/docker-react-multi-nginx ./nginx
+  - docker build -t jberardo/docker-react-multi-server ./server
+  - docker build -t jberardo/docker-react-multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push images to Docker Hub
+  - docker push jberardo/docker-react-multi-client
+  - docker push jberardo/docker-react-multi-nginx
+  - docker push jberardo/docker-react-multi-server
+  - docker push jberardo/docker-react-multi-worker
